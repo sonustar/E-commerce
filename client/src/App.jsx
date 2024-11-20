@@ -22,6 +22,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import PaypalReturnPage from "./pages/shopping-view/paypal-return";
 import PaymentSuccessPage from "./pages/shopping-view/payment-success";
 import SearchProducts from "./pages/shopping-view/search";
+import ChatBot from "react-chatbotify";
+import "./App.css"
 
 function App() {
   const { user, isAuthenticated, isLoading } = useSelector(
@@ -36,6 +38,122 @@ function App() {
   if (isLoading) return <Skeleton className="w-[800] bg-black h-[600px]" />;
 
   console.log(isLoading, user);
+
+  const flow = {
+    start: {
+      message: "Hello, How can I help you?",
+      options: ["I want to buy items", "No"],
+      path: (params) => {
+        if (params.userInput === "I want to buy items") {
+          return "accept";
+        } else if (params.userInput === "No") {
+          return "decline";
+        } else {
+          return "write";
+        }
+      },
+    },
+    write: {
+      message: "Please sir, choose from the Options",
+      transition: 1000,
+      path: "start",
+    },
+
+    accept: {
+      message: "Tell me, What do you want to buy?",
+      options: ["categories", "items"],
+      path: (params) => {
+        if (params.userInput === "categories") {
+          return "categories";
+        } else {
+          return "products";
+        }
+      },
+    },
+
+    categories: {
+      message: "Let's give you some categories to buy!!",
+      options: ["Groceries", "Watches", "Books", "T-shirts", "Mobiles", "Everyday", "Shoes"],
+      path: (params) => {
+        const userInput = params.userInput.toLowerCase();
+        const categories = ["groceries", "watch", "Books", "T-shirts", "mobiles", "Everyday", "Shoes"];
+
+        if (userInput.includes("shoes")) {
+          return "shoes";
+        } else if (userInput.includes("watches")) {
+          return "watches";
+        } else if (userInput.includes("books")) {
+          return "books";
+        } else if (userInput.includes("mobiles")) {
+          return "mobiles";
+        } else if (userInput.includes("everyday")) {
+          return "everyday";
+        } else {
+          return "others";
+        }
+      },
+    },
+
+    others: {
+      message: "This item might not be present in the stock but still have a look, sir",
+      path: "start",
+    },
+
+    shoes: {
+      message: "Here are some shoes you might like: Shoes",
+      options: ["Nike", "Adidas", "Puma"],
+    },
+
+    watches: {
+      message: "Here are some watches you might like: Watches",
+      options: ["Titan", "Rolex", "Sonata"],
+    },
+
+    books: {
+      message: "Here are some books available you might like: Books",
+      options: ["Tom and Jerry", "Harry Potter", "Rabindranath Tagore books"],
+    },
+
+    mobiles: {
+      message: "Here are some mobiles you might like: Mobiles",
+      options: ["Redmi", "Vivo", "iPhone"],
+    },
+
+    everyday: {
+      message: "Here are some everyday items you might like: Everyday",
+      options: ["Tata Salt", "Tata Gold", "Pressure Cooker"],
+    },
+
+    decline: {
+      message: "Please sir, You can explore our website, Hope you find some relevant items to buy 😊",
+      options: ["See the categories"],
+      path: (params) => {
+        if (params.userInput === "See the categories") {
+          return "accept";
+        } else {
+          return "write";
+        }
+      },
+    },
+
+    change_mind: {
+      message: "I see you changed your mind, let me get you the passage!",
+      transition: 1000,
+      path: "accept",
+    },
+
+    ask_repeat: {
+      message: "That's all for the passage, would you like me to repeat?",
+      options: ["Yes", "No"],
+      path: (params) => {
+        if (params.userInput === "Yes") {
+          return "accept";
+        } else {
+          return "decline";
+        }
+      },
+    },
+  };
 
   return (
     <div className="flex flex-col overflow-hidden bg-white">
@@ -92,6 +210,12 @@ function App() {
         <Route path="/unauth-page" element={<UnauthPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+       
+      <div className="chatbot-wrapper">
+        <ChatBot 
+        flow={flow} />
+      </div>
+
     </div>
   );
 }
